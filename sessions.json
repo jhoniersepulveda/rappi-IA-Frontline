@@ -7,5 +7,14 @@
     "restaurantName": "Tienda 84921",
     "confirmedAt": "2026-03-13T01:47:29.445Z",
     "eventId": "nn49oeve08sh0saqo3q8td7ehc"
+  },
+  "84921:2026-03-16": {
+    "slot": "2026-03-16T10:00:00-05:00",
+    "advisorId": "advisor_001",
+    "advisorName": "Jhonier Sepúlveda",
+    "problemType": "Visibilidad en plataforma",
+    "restaurantName": "Tienda 84921",
+    "confirmedAt": "2026-03-13T03:27:28.990Z",
+    "eventId": "f24rhla3m8ks2b94s7e962ul10"
   }
 }

@@ -287,6 +287,11 @@ app.post('/api/book', async (req, res) => {
   const eventTitle = `Frontline · ${name} · ${problemType}`;
   const eventDescription = `Tienda: ${storeId}\nRestaurante: ${name}\nProblema: ${problemType}\n\n${description}\n\nSesión máximo 15 minutos.`;
 
+  // Generate unique video call link (Jitsi — no auth required)
+  const roomId  = `rappi-frontline-${storeId}-${Date.now()}`;
+  const meetLink = `https://meet.jit.si/${roomId}`;
+  const fullDescription = `${eventDescription}\n\n🎥 Enlace de la llamada: ${meetLink}`;
+
   // Create Google Calendar event
   let eventId = null;
   try {
@@ -294,7 +299,7 @@ app.post('/api/book', async (req, res) => {
       calendarId: advisor.calendarId,
       requestBody: {
         summary: eventTitle,
-        description: eventDescription,
+        description: fullDescription,
         start: { dateTime: startTime.toISOString(), timeZone: 'America/Bogota' },
         end: { dateTime: endTime.toISOString(), timeZone: 'America/Bogota' },
         reminders: {
@@ -327,7 +332,10 @@ app.post('/api/book', async (req, res) => {
           <tr><td style="padding:8px 0;color:#666">Fecha y hora</td><td style="padding:8px 0;font-weight:600">${formattedDateTime}</td></tr>
           <tr><td style="padding:8px 0;color:#666;vertical-align:top">Descripción</td><td style="padding:8px 0">${description.replace(/\n/g, '<br>')}</td></tr>
         </table>
-        <div style="margin-top:20px;padding:12px 16px;background:#fff3cd;border-radius:6px;border-left:4px solid #FF441A">
+        ${meetLink ? `<div style="margin-top:20px;padding:12px 16px;background:#e8f4fd;border-radius:6px;border-left:4px solid #1a73e8;display:flex;align-items:center;gap:10px">
+          <strong>🎥 Google Meet:</strong> <a href="${meetLink}" style="color:#1a73e8">${meetLink}</a>
+        </div>` : ''}
+        <div style="margin-top:12px;padding:12px 16px;background:#fff3cd;border-radius:6px;border-left:4px solid #FF441A">
           <strong>Importante:</strong> Sesión máximo 15 minutos. Intenta resolver el caso antes de la llamada.
         </div>
       </div>
@@ -359,7 +367,7 @@ app.post('/api/book', async (req, res) => {
   const calendarLink = buildCalendarLink({
     title: eventTitle,
     startIso: slot,
-    description: eventDescription,
+    description: fullDescription,
   });
 
   return res.json({
@@ -370,6 +378,7 @@ app.post('/api/book', async (req, res) => {
     problemType,
     restaurantName: name,
     calendarLink,
+    meetLink,
   });
 });
 
