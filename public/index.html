@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
+  <title>Rappi Frontline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --primary: #FF441A;
+      --primary-dark: #e03a15;
+      --primary-light: #fff1ee;
+      --bg: #f7f7f7;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --radius-card: 16px;
+      --radius-pill: 10px;
+      --shadow-card: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-sheet: 0 -4px 32px rgba(0,0,0,0.15);
+      --transition: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+      --max-w: 420px;
+    }
+
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    /* ── App shell ── */
+    #app {
+      width: 100%;
+      max-width: var(--max-w);
+      min-height: 100vh;
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Sections (step containers) ── */
+    .section {
+      display: none;
+      opacity: 0;
+      transition: opacity var(--transition);
+      padding: 0 0 80px;
+    }
+    .section.active { display: block; }
+    .section.visible { opacity: 1; }
+
+    /* ── Header bar ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 10;
+    }
+    .header-logo {
+      width: 28px;
+      height: 28px;
+      background: var(--primary);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-logo svg { width: 16px; height: 16px; }
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    .header-subtitle {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .back-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .back-btn.show { display: flex; }
+
+    /* ── Loading ── */
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 16px;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 14px; color: var(--text-secondary); }
+
+    /* ── Error screen ── */
+    #error-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 32px 24px;
+      text-align: center;
+      gap: 12px;
+    }
+    #error-screen.active { display: flex; }
+    .error-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #fef2f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+    .error-title { font-size: 18px; font-weight: 700; }
+    .error-msg { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ── Bottom sheet (Step 1) ── */
+    #sheet-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0);
+      z-index: 100;
+      transition: background var(--transition);
+    }
+    #sheet-overlay.open {
+      display: block;
+      background: rgba(0,0,0,0.5);
+    }
+    #bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(110%);
+      width: 100%;
+      max-width: var(--max-w);
+      background: var(--surface);
+      border-radius: 24px 24px 0 0;
+      padding: 12px 20px 32px;
+      z-index: 101;
+      transition: transform var(--transition);
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+    #bottom-sheet.open { transform: translateX(-50%) translateY(0); }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+    .sheet-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Advisor card ── */
+    .advisor-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      background: var(--primary-light);
+      border-radius: var(--radius-card);
+      margin-bottom: 16px;
+    }
+    .advisor-avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      font-weight: 700;
+      flex-shrink: 0;
+      letter-spacing: -0.5px;
+    }
+    .advisor-avatar.sm {
+      width: 40px;
+      height: 40px;
+      font-size: 14px;
+    }
+    .advisor-info { flex: 1; min-width: 0; }
+    .advisor-name { font-size: 16px; font-weight: 700; line-height: 1.2; }
+    .advisor-title { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .advisor-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .stars { color: #f59e0b; font-size: 12px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .badge-available { background: #dcfce7; color: #166534; }
+    .badge-unavailable { background: #f3f4f6; color: #6b7280; }
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .badge-available .badge-dot { background: var(--success); }
+    .badge-unavailable .badge-dot { background: #9ca3af; }
+
+    .advisor-bio {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%;
+      padding: 15px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: background var(--transition), transform 120ms ease, opacity var(--transition);
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border);
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { background: var(--bg); }
+    .btn-calendar {
+      background: #1a73e8;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .btn-calendar:hover { background: #1557b0; }
+    .btn-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* ── Step 2: Slot picker ── */
+    .step-content { padding: 20px; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+
+    /* Advisor mini card (step 2 top) */
+    .advisor-mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--primary-light);
+      border-radius: var(--radius-card);
+      margin-bottom: 20px;
+    }
+    .advisor-mini-info { flex: 1; }
+    .advisor-mini-name { font-size: 14px; font-weight: 600; }
+    .advisor-mini-meta { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+
+    /* Date tabs */
+    .date-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+      margin-bottom: 20px;
+    }
+    .date-tabs::-webkit-scrollbar { display: none; }
+    .date-tab {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      background: var(--surface);
+      font-family: inherit;
+      transition: all 150ms ease;
+      min-width: 58px;
+    }
+    .date-tab:hover { border-color: var(--primary); }
+    .date-tab.active { border-color: var(--primary); background: var(--primary-light); }
+    .date-tab-day { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+    .date-tab-num { font-size: 18px; font-weight: 700; line-height: 1.1; }
+    .date-tab-mon { font-size: 10px; color: var(--text-secondary); }
+    .date-tab.active .date-tab-day,
+    .date-tab.active .date-tab-num,
+    .date-tab.active .date-tab-mon { color: var(--primary); }
+
+    /* Slot pills */
+    .slots-container { margin-bottom: 24px; }
+    .slots-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 28px 0;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+    .slots-empty {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .slot-pill {
+      padding: 10px 4px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-pill);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text);
+      transition: all 150ms ease;
+    }
+    .slot-pill:hover:not(.disabled) { border-color: var(--primary); color: var(--primary); }
+    .slot-pill.selected { background: var(--primary); border-color: var(--primary); color: white; }
+    .slot-pill.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      text-decoration: line-through;
+      pointer-events: none;
+    }
+
+    /* Form */
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .form-select, .form-textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color 150ms ease;
+      outline: none;
+    }
+    .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+    .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer; }
+    .form-textarea { resize: none; height: 100px; line-height: 1.5; }
+    .char-counter {
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .char-counter.warning { color: var(--warning); }
+    .char-counter.over { color: #ef4444; }
+
+    /* Sticky footer */
+    .sticky-footer {
+      position: sticky;
+      bottom: 0;
+      background: var(--surface);
+      padding: 12px 20px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .slot-summary {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 10px;
+      min-height: 16px;
+    }
+    .slot-summary strong { color: var(--primary); }
+
+    /* ── Step 3: Confirmation ── */
+    #step-3 .section-header {
+      padding: 32px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .check-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #dcfce7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .check-circle svg {
+      width: 40px;
+      height: 40px;
+    }
+    @keyframes checkDraw {
+      from { stroke-dashoffset: 80; }
+      to   { stroke-dashoffset: 0; }
+    }
+    .check-path {
+      stroke-dasharray: 80;
+      stroke-dashoffset: 80;
+      animation: checkDraw 0.5s ease-out 0.2s forwards;
+    }
+    @keyframes scalePop {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .check-circle { animation: scalePop 0.4s ease-out forwards; }
+    .confirm-title { font-size: 22px; font-weight: 700; }
+    .confirm-subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+    .confirm-card {
+      margin: 4px 20px 0;
+      background: var(--bg);
+      border-radius: var(--radius-card);
+      padding: 16px;
+    }
+    .confirm-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .confirm-row:last-child { border-bottom: none; }
+    .confirm-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 15px;
+    }
+    .confirm-row-info { flex: 1; }
+    .confirm-row-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+    .confirm-row-value { font-size: 14px; font-weight: 600; margin-top: 1px; }
+
+    .confirm-note {
+      margin: 16px 20px;
+      padding: 12px 14px;
+      background: var(--primary-light);
+      border-radius: 10px;
+      border-left: 3px solid var(--primary);
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .confirm-actions { padding: 0 20px 32px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── Already booked ── */
+    #already-booked {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px 24px;
+      text-align: center;
+      gap: 12px;
+    }
+    #already-booked.active { display: flex; }
+    .booked-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+    .booked-title { font-size: 20px; font-weight: 700; }
+    .booked-msg { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+    .booked-time {
+      background: var(--primary-light);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      width: 100%;
+      max-width: 280px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <span class="loading-text">Cargando tu asesor…</span>
+  </div>
+
+  <!-- Error screen -->
+  <div id="error-screen">
+    <div class="error-icon">⚠️</div>
+    <p class="error-title" id="error-title">Algo salió mal</p>
+    <p class="error-msg" id="error-msg">Por favor intenta de nuevo.</p>
+  </div>
+
+  <!-- Bottom sheet overlay (Step 1) -->
+  <div id="sheet-overlay"></div>
+  <div id="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <p class="sheet-tag">Tu asesor asignado</p>
+
+    <div class="advisor-card" id="sheet-advisor-card">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="advisor-bio" id="sheet-bio"></div>
+
+    <div style="margin-top:20px">
+      <button class="btn btn-primary" id="btn-schedule">Agendar sesión con…</button>
+      <button class="btn btn-secondary" id="btn-dismiss">Ahora no, gracias</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Picker -->
+  <section id="step-2" class="section">
+    <div class="header">
+      <div class="header-logo">
+        <svg viewBox="0 0 16 16" fill="none"><rect width="16" height="16" rx="3" fill="white" fill-opacity="0.2"/><path d="M3 8.5L6.5 12 13 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="header-title">Rappi Frontline</div>
+        <div class="header-subtitle">Agenda tu sesión</div>
+      </div>
+      <button class="back-btn show" id="btn-back">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver
+      </button>
+    </div>
+
+    <div class="step-content">
+      <!-- Advisor mini -->
+      <div class="advisor-mini" id="step2-advisor">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Date tabs -->
+      <p class="section-label">Selecciona un día</p>
+      <div class="date-tabs" id="date-tabs"></div>
+
+      <!-- Slot pills -->
+      <p class="section-label">Horarios disponibles</p>
+      <div class="slots-container" id="slots-container">
+        <div class="slots-empty">Selecciona un día para ver los horarios</div>
+      </div>
+
+      <!-- Problem form -->
+      <p class="section-label">Cuéntanos tu caso</p>
+      <div class="form-group">
+        <label class="form-label" for="problem-type">Tipo de problema</label>
+        <select class="form-select" id="problem-type">
+          <option value="">Selecciona una opción…</option>
+          <option>Pagos y liquidaciones</option>
+          <option>Pedidos y operaciones</option>
+          <option>Visibilidad en plataforma</option>
+          <option>Acceso a la app</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description">Descripción del problema</label>
+        <textarea class="form-textarea" id="description" maxlength="300" placeholder="Describe brevemente tu situación para que tu asesor llegue preparado…"></textarea>
+        <div class="char-counter" id="char-counter">300 caracteres restantes</div>
+      </div>
+    </div>
+
+    <div class="sticky-footer">
+      <div class="slot-summary" id="slot-summary">Elige un horario arriba</div>
+      <button class="btn btn-primary" id="btn-confirm" disabled>Confirmar sesión · 15 min</button>
+    </div>
+  </section>
+
+  <!-- Step 3: Confirmation -->
+  <section id="step-3" class="section">
+    <div class="section-header">
+      <div class="check-circle">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="check-path" d="M10 20 L17 27 L30 13" stroke="#10b981" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1 class="confirm-title">¡Sesión agendada!</h1>
+      <p class="confirm-subtitle">Tu asesor ya fue notificado</p>
+    </div>
+
+    <div class="confirm-card" id="confirm-card">
+      <!-- Populated by JS -->
+    </div>
+
+    <p class="confirm-note">
+      Tu asesor revisará tu caso antes de la llamada. ¡Prepárate con los detalles listos!
+    </p>
+
+    <div class="confirm-actions">
+      <a class="btn btn-calendar" id="btn-add-calendar" href="#" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="3" width="14" height="13" rx="2" stroke="white" stroke-width="1.5"/><path d="M2 7h14" stroke="white" stroke-width="1.5"/><path d="M6 1v3M12 1v3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Agregar a Google Calendar
+      </a>
+      <button class="btn btn-secondary" id="btn-done">Listo</button>
+    </div>
+  </section>
+
+  <!-- Already booked -->
+  <div id="already-booked">
+    <div class="booked-icon">📅</div>
+    <p class="booked-title">Ya tienes una sesión hoy</p>
+    <p class="booked-msg" id="booked-msg">Ya agendaste una sesión de soporte para hoy.</p>
+    <div class="booked-time" id="booked-time"></div>
+    <a class="btn btn-calendar" id="btn-booked-calendar" href="#" target="_blank" rel="noopener" style="display:none;text-decoration:none;margin-top:8px">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="3" width="14" height="13" rx="2" stroke="white" stroke-width="1.5"/><path d="M2 7h14" stroke="white" stroke-width="1.5"/><path d="M6 1v3M12 1v3" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Ver en Google Calendar
+    </a>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+  'use strict';
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  const state = {
+    storeId: null,
+    advisor: null,
+    selectedDate: null,
+    selectedSlot: null,
+    slotsCache: {},       // date → slot arrays
+    confirmationData: null,
+  };
+
+  // ── DOM refs ───────────────────────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const loadingEl      = $('loading');
+  const errorEl        = $('error-screen');
+  const sheetOverlay   = $('sheet-overlay');
+  const bottomSheet    = $('bottom-sheet');
+  const step2El        = $('step-2');
+  const step3El        = $('step-3');
+  const alreadyBooked  = $('already-booked');
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function getStoreId() {
+    return new URLSearchParams(window.location.search).get('store');
+  }
+
+  function showError(title, msg) {
+    loadingEl.style.display = 'none';
+    closeSheet();
+    hideSection(step2El);
+    hideSection(step3El);
+    alreadyBooked.classList.remove('active');
+    $('error-title').textContent = title;
+    $('error-msg').textContent = msg;
+    errorEl.classList.add('active');
+  }
+
+  function showSection(el) {
+    el.classList.add('active');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => el.classList.add('visible'));
+    });
+  }
+
+  function hideSection(el) {
+    el.classList.remove('visible');
+    el.addEventListener('transitionend', () => el.classList.remove('active'), { once: true });
+  }
+
+  function openSheet() {
+    sheetOverlay.classList.add('open');
+    requestAnimationFrame(() => bottomSheet.classList.add('open'));
+  }
+
+  function closeSheet() {
+    bottomSheet.classList.remove('open');
+    sheetOverlay.classList.remove('open');
+  }
+
+  function renderStars(rating) {
+    const full = Math.floor(rating);
+    const half = rating - full >= 0.5;
+    let s = '';
+    for (let i = 0; i < 5; i++) {
+      if (i < full) s += '★';
+      else if (i === full && half) s += '½';
+      else s += '☆';
+    }
+    return s;
+  }
+
+  function formatSlotTime(isoStr) {
+    return new Intl.DateTimeFormat('es-CO', {
+      hour: '2-digit', minute: '2-digit', hour12: true,
+      timeZone: 'America/Bogota',
+    }).format(new Date(isoStr)).toUpperCase();
+  }
+
+  function formatDateFull(isoStr) {
+    const d = new Date(isoStr);
+    const datePart = new Intl.DateTimeFormat('es-CO', {
+      weekday: 'long', day: 'numeric', month: 'long',
+      timeZone: 'America/Bogota',
+    }).format(d);
+    const timePart = new Intl.DateTimeFormat('es-CO', {
+      hour: '2-digit', minute: '2-digit', hour12: true,
+      timeZone: 'America/Bogota',
+    }).format(d);
+    const capitalized = datePart.charAt(0).toUpperCase() + datePart.slice(1);
+    return `${capitalized} · ${timePart.toUpperCase()}`;
+  }
+
+  function getNext5BusinessDays() {
+    const days = [];
+    const cursor = new Date();
+    cursor.setHours(0, 0, 0, 0);
+    while (days.length < 5) {
+      cursor.setDate(cursor.getDate() + 1);
+      const dow = cursor.getDay();
+      if (dow !== 0 && dow !== 6) {
+        days.push(new Date(cursor));
+      }
+    }
+    return days;
+  }
+
+  function toDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  const DAY_ABBR = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const MON_ABBR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  function updateConfirmButton() {
+    const slot     = state.selectedSlot;
+    const type     = $('problem-type').value;
+    const desc     = $('description').value.trim();
+    const canBook  = slot && type && desc.length > 0 && desc.length <= 300;
+    $('btn-confirm').disabled = !canBook;
+
+    if (slot) {
+      $('slot-summary').innerHTML = `<strong>${formatDateFull(slot)}</strong>`;
+    } else {
+      $('slot-summary').textContent = 'Elige un horario arriba';
+    }
+  }
+
+  // ── Render advisor info (sheet) ────────────────────────────────────────────
+  function renderAdvisorSheet(advisor) {
+    const badge = `<span class="badge badge-available"><span class="badge-dot"></span>Disponible hoy</span>`;
+    $('sheet-advisor-card').innerHTML = `
+      <div class="advisor-avatar">${advisor.initials}</div>
+      <div class="advisor-info">
+        <div class="advisor-name">${advisor.name}</div>
+        <div class="advisor-title">${advisor.title}</div>
+        <div class="advisor-meta">
+          <span class="meta-item"><span class="stars">${renderStars(advisor.rating)}</span> ${advisor.rating}</span>
+          <span class="meta-item">· ${advisor.totalSessions} sesiones</span>
+          <span class="meta-item">· ${advisor.yearsAtRappi} años en Rappi</span>
+        </div>
+        ${badge}
+      </div>
+    `;
+    $('sheet-bio').textContent = advisor.bio;
+    $('btn-schedule').textContent = `Agendar sesión con ${advisor.name.split(' ')[0]}`;
+  }
+
+  // ── Render advisor mini (step 2 top) ───────────────────────────────────────
+  function renderAdvisorMini(advisor) {
+    $('step2-advisor').innerHTML = `
+      <div class="advisor-avatar sm">${advisor.initials}</div>
+      <div class="advisor-mini-info">
+        <div class="advisor-mini-name">${advisor.name}</div>
+        <div class="advisor-mini-meta">
+          <span class="stars">${renderStars(advisor.rating)}</span>
+          <span>${advisor.rating} · ${advisor.totalSessions} sesiones</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Render date tabs ───────────────────────────────────────────────────────
+  function renderDateTabs() {
+    const days = getNext5BusinessDays();
+    const tabs = $('date-tabs');
+    tabs.innerHTML = '';
+    days.forEach(d => {
+      const dateStr = toDateStr(d);
+      const btn = document.createElement('button');
+      btn.className = 'date-tab' + (dateStr === state.selectedDate ? ' active' : '');
+      btn.dataset.date = dateStr;
+      btn.innerHTML = `
+        <span class="date-tab-day">${DAY_ABBR[d.getDay()]}</span>
+        <span class="date-tab-num">${d.getDate()}</span>
+        <span class="date-tab-mon">${MON_ABBR[d.getMonth()]}</span>
+      `;
+      btn.addEventListener('click', () => selectDate(dateStr));
+      tabs.appendChild(btn);
+    });
+  }
+
+  // ── Select date → fetch slots ──────────────────────────────────────────────
+  async function selectDate(dateStr) {
+    // Update active tab
+    document.querySelectorAll('.date-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.date === dateStr);
+    });
+    state.selectedDate = dateStr;
+    state.selectedSlot = null;
+    updateConfirmButton();
+
+    if (state.slotsCache[dateStr]) {
+      renderSlotPills(state.slotsCache[dateStr]);
+      return;
+    }
+
+    $('slots-container').innerHTML = `
+      <div class="slots-loading">
+        <div class="spinner" style="width:20px;height:20px"></div>
+        <span>Consultando disponibilidad…</span>
+      </div>`;
+
+    try {
+      const res = await fetch(`/api/slots?advisorId=${state.advisor.id}&date=${dateStr}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      state.slotsCache[dateStr] = data.slots;
+      renderSlotPills(data.slots);
+    } catch (err) {
+      $('slots-container').innerHTML = `<div class="slots-empty">No se pudo cargar la disponibilidad. Intenta de nuevo.</div>`;
+    }
+  }
+
+  // ── Render slot pills ──────────────────────────────────────────────────────
+  function renderSlotPills(slots) {
+    if (!slots || slots.length === 0) {
+      $('slots-container').innerHTML = `<div class="slots-empty">Sin horarios disponibles para este día</div>`;
+      return;
+    }
+    const grid = document.createElement('div');
+    grid.className = 'slots-grid';
+    slots.forEach(slot => {
+      const pill = document.createElement('button');
+      pill.className = 'slot-pill' + (slot === state.selectedSlot ? ' selected' : '');
+      pill.textContent = formatSlotTime(slot);
+      pill.dataset.slot = slot;
+      pill.addEventListener('click', () => selectSlot(slot));
+      grid.appendChild(pill);
+    });
+    $('slots-container').innerHTML = '';
+    $('slots-container').appendChild(grid);
+  }
+
+  // ── Select slot ────────────────────────────────────────────────────────────
+  function selectSlot(slot) {
+    state.selectedSlot = slot;
+    document.querySelectorAll('.slot-pill').forEach(p => {
+      p.classList.toggle('selected', p.dataset.slot === slot);
+    });
+    updateConfirmButton();
+    // Scroll form into view
+    document.querySelector('.form-group')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ── Render confirmation card ───────────────────────────────────────────────
+  function renderConfirmCard(data) {
+    $('confirm-card').innerHTML = `
+      <div class="confirm-row">
+        <div class="confirm-icon">👤</div>
+        <div class="confirm-row-info">
+          <div class="confirm-row-label">Asesor</div>
+          <div class="confirm-row-value">${data.advisorName}</div>
+        </div>
+      </div>
+      <div class="confirm-row">
+        <div class="confirm-icon">📅</div>
+        <div class="confirm-row-info">
+          <div class="confirm-row-label">Fecha y hora</div>
+          <div class="confirm-row-value">${formatDateFull(data.slot)}</div>
+        </div>
+      </div>
+      <div class="confirm-row">
+        <div class="confirm-icon">⏱</div>
+        <div class="confirm-row-info">
+          <div class="confirm-row-label">Duración</div>
+          <div class="confirm-row-value">15 minutos</div>
+        </div>
+      </div>
+      <div class="confirm-row">
+        <div class="confirm-icon">🏪</div>
+        <div class="confirm-row-info">
+          <div class="confirm-row-label">Restaurante</div>
+          <div class="confirm-row-value">${data.restaurantName}</div>
+        </div>
+      </div>
+      <div class="confirm-row">
+        <div class="confirm-icon">💬</div>
+        <div class="confirm-row-info">
+          <div class="confirm-row-label">Motivo</div>
+          <div class="confirm-row-value">${data.problemType}</div>
+        </div>
+      </div>
+    `;
+    $('btn-add-calendar').href = data.calendarLink;
+  }
+
+  // ── Book session ───────────────────────────────────────────────────────────
+  async function bookSession() {
+    const btn = $('btn-confirm');
+    const problemType = $('problem-type').value;
+    const description = $('description').value.trim();
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="btn-loading"><span class="btn-spinner"></span>Agendando…</span>`;
+
+    try {
+      const res = await fetch('/api/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: state.storeId,
+          advisorId: state.advisor.id,
+          slot: state.selectedSlot,
+          problemType,
+          description,
+          restaurantName: `Tienda ${state.storeId}`,
+        }),
+      });
+      const data = await res.json();
+
+      if (res.status === 409 && data.existingSession) {
+        showAlreadyBooked(data.existingSession);
+        return;
+      }
+      if (!res.ok) {
+        // Re-enable button and show inline error
+        btn.disabled = false;
+        btn.textContent = 'Confirmar sesión · 15 min';
+        if (res.status === 409) {
+          // Slot taken — refresh slots for this date
+          delete state.slotsCache[state.selectedDate];
+          state.selectedSlot = null;
+          await selectDate(state.selectedDate);
+          alert(data.error || 'Ese horario ya no está disponible. Elige otro.');
+        } else {
+          alert(data.error || 'Ocurrió un error. Intenta de nuevo.');
+        }
+        return;
+      }
+
+      // Success → go to step 3
+      state.confirmationData = data;
+      hideSection(step2El);
+      renderConfirmCard(data);
+      setTimeout(() => showSection(step3El), 50);
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Confirmar sesión · 15 min';
+      alert('Error de conexión. Verifica tu internet e intenta de nuevo.');
+    }
+  }
+
+  // ── Show already booked screen ─────────────────────────────────────────────
+  function showAlreadyBooked(session) {
+    loadingEl.style.display = 'none';
+    closeSheet();
+    hideSection(step2El);
+    const formattedTime = session.slot ? formatDateFull(session.slot) : 'hoy';
+    $('booked-msg').textContent = `Ya agendaste una sesión de soporte para hoy con ${session.advisorName || 'tu asesor'}.`;
+    $('booked-time').textContent = formattedTime;
+    alreadyBooked.classList.add('active');
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  async function init() {
+    const storeId = getStoreId();
+    if (!storeId) {
+      showError('URL inválida', 'Por favor accede desde la app de Rappi Aliados. Asegúrate de que el enlace incluye tu tienda.');
+      return;
+    }
+    state.storeId = storeId.trim();
+
+    try {
+      const [advisorRes, sessionRes] = await Promise.all([
+        fetch(`/api/advisor?store=${state.storeId}`),
+        fetch(`/api/session-today?store=${state.storeId}`),
+      ]);
+
+      if (advisorRes.status === 404) {
+        showError('Tienda no encontrada', 'No encontramos un asesor asignado para tu tienda. Contacta a soporte de Rappi.');
+        return;
+      }
+      if (!advisorRes.ok) {
+        showError('Error de conexión', 'No pudimos cargar tu asesor. Intenta de nuevo en unos segundos.');
+        return;
+      }
+
+      const advisor = await advisorRes.json();
+      state.advisor = advisor;
+
+      let sessionData = { hasSession: false };
+      if (sessionRes.ok) {
+        sessionData = await sessionRes.json();
+      }
+
+      // Hide loading
+      loadingEl.style.display = 'none';
+
+      if (sessionData.hasSession) {
+        showAlreadyBooked(sessionData.session);
+        return;
+      }
+
+      // Show step 1 bottom sheet
+      renderAdvisorSheet(advisor);
+      openSheet();
+
+    } catch (err) {
+      showError('Error de conexión', 'Verifica tu internet e intenta de nuevo.');
+    }
+  }
+
+  // ── Event listeners ────────────────────────────────────────────────────────
+
+  // Step 1: "Agendar sesión"
+  $('btn-schedule').addEventListener('click', () => {
+    closeSheet();
+    renderAdvisorMini(state.advisor);
+    renderDateTabs();
+    showSection(step2El);
+    // Auto-select first date
+    const firstDate = getNext5BusinessDays()[0];
+    if (firstDate) setTimeout(() => selectDate(toDateStr(firstDate)), 100);
+  });
+
+  // Step 1: "Ahora no"
+  $('btn-dismiss').addEventListener('click', () => {
+    closeSheet();
+    showError('Hasta luego', 'Puedes volver cuando necesites ayuda. Estamos aquí para ti.');
+  });
+
+  // Step 2: back button
+  $('btn-back').addEventListener('click', () => {
+    hideSection(step2El);
+    setTimeout(() => {
+      state.selectedSlot = null;
+      openSheet();
+    }, 150);
+  });
+
+  // Step 2: char counter
+  $('description').addEventListener('input', function() {
+    const remaining = 300 - this.value.length;
+    const counter = $('char-counter');
+    counter.textContent = `${remaining} caracteres restantes`;
+    counter.className = 'char-counter' + (remaining < 50 ? ' warning' : '') + (remaining < 0 ? ' over' : '');
+    updateConfirmButton();
+  });
+
+  // Step 2: problem type change
+  $('problem-type').addEventListener('change', updateConfirmButton);
+
+  // Step 2: confirm button
+  $('btn-confirm').addEventListener('click', bookSession);
+
+  // Step 3: done button
+  $('btn-done').addEventListener('click', () => {
+    // Reset state for a clean experience
+    state.selectedSlot = null;
+    state.selectedDate = null;
+    state.confirmationData = null;
+    state.slotsCache = {};
+    hideSection(step3El);
+    setTimeout(() => {
+      loadingEl.style.display = 'flex';
+      init();
+    }, 300);
+  });
+
+  // Close sheet on overlay click
+  $('sheet-overlay').addEventListener('click', () => {
+    closeSheet();
+    showError('Hasta luego', 'Puedes volver cuando necesites ayuda. Estamos aquí para ti.');
+  });
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  init();
+</script>
+</body>
+</html>

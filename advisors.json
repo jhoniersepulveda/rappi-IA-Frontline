@@ -1,0 +1,17 @@
+{
+  "advisors": [
+    {
+      "id": "advisor_001",
+      "name": "Jhonier Sepúlveda",
+      "title": "Partner Advisor Senior",
+      "email": "jhonier.sepulveda@rappi.com",
+      "calendarId": "jhonier.sepulveda@utp.edu.co",
+      "initials": "JS",
+      "yearsAtRappi": 5,
+      "rating": 4.9,
+      "totalSessions": 428,
+      "bio": "Mi objetivo es que salgas de cada sesión con tu problema resuelto. Especialista en pagos y visibilidad en plataforma.",
+      "storeIds": ["84921", "12345", "67890"]
+    }
+  ]
+}
