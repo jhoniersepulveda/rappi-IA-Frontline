@@ -287,10 +287,31 @@ app.post('/api/book', async (req, res) => {
   const eventTitle = `Frontline · ${name} · ${problemType}`;
   const eventDescription = `Tienda: ${storeId}\nRestaurante: ${name}\nProblema: ${problemType}\n\n${description}\n\nSesión máximo 15 minutos.`;
 
-  // Generate unique video call link (Jitsi — no auth required)
-  const roomId  = `rappi-frontline-${storeId}-${Date.now()}`;
-  const meetLink = `https://meet.jit.si/${roomId}`;
-  const fullDescription = `${eventDescription}\n\n🎥 Enlace de la llamada: ${meetLink}`;
+  // Create unique Whereby room for this session
+  let meetLink     = null;
+  let hostMeetLink = null;
+  try {
+    const wherebyRes = await fetch('https://api.whereby.dev/v1/meetings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.WHEREBY_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        endDate: endTime.toISOString(),
+        fields: ['hostRoomUrl'],
+      }),
+    });
+    if (wherebyRes.ok) {
+      const wherebyData = await wherebyRes.json();
+      meetLink     = wherebyData.roomUrl;
+      hostMeetLink = wherebyData.hostRoomUrl || wherebyData.roomUrl;
+    } else {
+      console.error('[whereby] Error:', await wherebyRes.text());
+    }
+  } catch (err) {
+    console.error('[whereby] Fetch error:', err.message);
+  }
 
   // Create Google Calendar event
   let eventId = null;
@@ -299,9 +320,9 @@ app.post('/api/book', async (req, res) => {
       calendarId: advisor.calendarId,
       requestBody: {
         summary: eventTitle,
-        description: fullDescription,
+        description: eventDescription,
         start: { dateTime: startTime.toISOString(), timeZone: 'America/Bogota' },
-        end: { dateTime: endTime.toISOString(), timeZone: 'America/Bogota' },
+        end:   { dateTime: endTime.toISOString(),   timeZone: 'America/Bogota' },
         reminders: {
           useDefault: false,
           overrides: [{ method: 'popup', minutes: 10 }],
@@ -316,6 +337,10 @@ app.post('/api/book', async (req, res) => {
     }
     return res.status(503).json({ error: 'No se pudo agendar la sesión. Intenta de nuevo.' });
   }
+
+  const fullDescription = meetLink
+    ? `${eventDescription}\n\n🎥 Enlace de la llamada: ${meetLink}`
+    : eventDescription;
 
   // Send email to advisor (non-blocking)
   const formattedDateTime = formatDateTimeSpanish(slot);
@@ -332,8 +357,9 @@ app.post('/api/book', async (req, res) => {
           <tr><td style="padding:8px 0;color:#666">Fecha y hora</td><td style="padding:8px 0;font-weight:600">${formattedDateTime}</td></tr>
           <tr><td style="padding:8px 0;color:#666;vertical-align:top">Descripción</td><td style="padding:8px 0">${description.replace(/\n/g, '<br>')}</td></tr>
         </table>
-        ${meetLink ? `<div style="margin-top:20px;padding:12px 16px;background:#e8f4fd;border-radius:6px;border-left:4px solid #1a73e8;display:flex;align-items:center;gap:10px">
-          <strong>🎥 Google Meet:</strong> <a href="${meetLink}" style="color:#1a73e8">${meetLink}</a>
+        ${hostMeetLink ? `<div style="margin-top:20px;padding:12px 16px;background:#e8f4fd;border-radius:6px;border-left:4px solid #1a73e8">
+          <strong>🎥 Tu enlace de la llamada (host):</strong><br>
+          <a href="${hostMeetLink}" style="color:#1a73e8;word-break:break-all">${hostMeetLink}</a>
         </div>` : ''}
         <div style="margin-top:12px;padding:12px 16px;background:#fff3cd;border-radius:6px;border-left:4px solid #FF441A">
           <strong>Importante:</strong> Sesión máximo 15 minutos. Intenta resolver el caso antes de la llamada.
@@ -379,6 +405,7 @@ app.post('/api/book', async (req, res) => {
     restaurantName: name,
     calendarLink,
     meetLink,
+    hostMeetLink,
   });
 });
 
