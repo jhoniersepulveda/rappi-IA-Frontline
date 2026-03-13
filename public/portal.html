@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rappi Aliados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #FF441A;
+      --primary-dark: #e03a15;
+      --primary-light: #fff1ee;
+      --bg: #f4f4f4;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --green: #10b981;
+      --max-w: 420px;
+      --transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    #app {
+      width: 100%;
+      max-width: var(--max-w);
+      min-height: 100vh;
+      background: var(--bg);
+      position: relative;
+      overflow-x: hidden;
+      padding-bottom: 100px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--primary);
+      padding: 16px 20px 20px;
+      color: white;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .rappi-logo {
+      font-size: 22px;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+    .header-icons { display: flex; gap: 16px; }
+    .header-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .store-info { display: flex; align-items: center; gap: 12px; }
+    .store-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .store-name { font-size: 17px; font-weight: 700; }
+    .store-meta { font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 2px; }
+    .store-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.2);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+
+    /* ── Content ── */
+    .content { padding: 16px; }
+
+    /* ── Metrics row ── */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .metric-card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 14px 12px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .metric-value { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
+    .metric-label { font-size: 10px; color: var(--text-secondary); margin-top: 4px; font-weight: 500; }
+    .metric-change { font-size: 10px; color: var(--green); font-weight: 600; margin-top: 2px; }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .section-title { font-size: 14px; font-weight: 700; }
+    .section-link { font-size: 12px; color: var(--primary); font-weight: 600; cursor: pointer; }
+
+    /* ── Orders ── */
+    .order-card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .order-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .order-info { flex: 1; }
+    .order-id { font-size: 13px; font-weight: 600; }
+    .order-items { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .order-right { text-align: right; }
+    .order-amount { font-size: 14px; font-weight: 700; }
+    .order-status {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    .status-delivered { background: #dcfce7; color: #166534; }
+    .status-progress  { background: #fef9c3; color: #854d0e; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+    /* ── Earnings card ── */
+    .earnings-card {
+      background: linear-gradient(135deg, var(--primary) 0%, #ff6b3d 100%);
+      border-radius: 16px;
+      padding: 18px;
+      color: white;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .earnings-card::after {
+      content: '';
+      position: absolute;
+      right: -20px;
+      top: -20px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+    }
+    .earnings-label { font-size: 12px; color: rgba(255,255,255,0.8); font-weight: 500; }
+    .earnings-amount { font-size: 32px; font-weight: 800; margin: 4px 0; letter-spacing: -1px; }
+    .earnings-period { font-size: 11px; color: rgba(255,255,255,0.7); }
+    .earnings-bar {
+      margin-top: 14px;
+      height: 6px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .earnings-fill {
+      height: 100%;
+      width: 68%;
+      background: white;
+      border-radius: 3px;
+    }
+    .earnings-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* ── Nav bar ── */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: var(--max-w);
+      background: white;
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding: 8px 0 20px;
+      z-index: 10;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      padding: 4px 0;
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-item svg { width: 22px; height: 22px; }
+
+    /* ── FAB "Necesito ayuda" ── */
+    .fab-help {
+      position: fixed;
+      bottom: 82px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: calc(var(--max-w) - 32px);
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(255, 68, 26, 0.45);
+      z-index: 20;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    .fab-help:hover {
+      transform: translateX(-50%) translateY(-2px);
+      box-shadow: 0 6px 24px rgba(255, 68, 26, 0.55);
+    }
+    .fab-help:active {
+      transform: translateX(-50%) scale(0.97);
+    }
+    .fab-pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: white;
+      position: relative;
+    }
+    .fab-pulse::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.6);
+      animation: pulse 1.5s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { transform: scale(0.8); opacity: 1; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    /* ── Frontline overlay (iframe panel) ── */
+    #frontline-overlay {
+      visibility: hidden;
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      transition: visibility 0s linear var(--transition);
+    }
+    #frontline-overlay.open {
+      visibility: visible;
+      pointer-events: auto;
+      transition: visibility 0s linear 0s;
+    }
+
+    #overlay-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0);
+      transition: background var(--transition);
+    }
+    #frontline-overlay.open #overlay-backdrop {
+      background: rgba(0,0,0,0.5);
+    }
+
+    #frontline-panel {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: 100%;
+      max-width: var(--max-w);
+      height: 100vh;
+      height: 100dvh;
+      background: white;
+      border-radius: 0;
+      overflow: hidden;
+      transition: transform var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+    #frontline-overlay.open #frontline-panel {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .panel-handle-bar {
+      width: 100%;
+      padding: 12px 0 0;
+      display: flex;
+      justify-content: center;
+      flex-shrink: 0;
+      background: white;
+    }
+    .panel-handle {
+      width: 36px;
+      height: 4px;
+      background: #e5e7eb;
+      border-radius: 2px;
+    }
+
+    #frontline-iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <span class="rappi-logo">rappi</span>
+      <div class="header-icons">
+        <div class="header-icon">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="header-icon">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/><path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="store-info">
+      <div class="store-avatar">🍔</div>
+      <div>
+        <div class="store-name">Tienda 84921</div>
+        <div class="store-meta">ID: 84921 · Bogotá, Colombia</div>
+        <div class="store-status"><span class="status-dot"></span>Abierto ahora</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Metrics -->
+    <div class="metrics-row" style="margin-top:16px">
+      <div class="metric-card">
+        <div class="metric-value">47</div>
+        <div class="metric-label">Pedidos hoy</div>
+        <div class="metric-change">↑ 12%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">4.7</div>
+        <div class="metric-label">Calificación</div>
+        <div class="metric-change">↑ 0.2</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">23'</div>
+        <div class="metric-label">Tiempo prom.</div>
+        <div class="metric-change" style="color:#f59e0b">↓ 3 min</div>
+      </div>
+    </div>
+
+    <!-- Earnings -->
+    <div class="earnings-card">
+      <div class="earnings-label">Liquidación esta semana</div>
+      <div class="earnings-amount">$842.500</div>
+      <div class="earnings-period">Lun 10 – Vie 14 de marzo · 47 pedidos completados</div>
+      <div class="earnings-bar"><div class="earnings-fill"></div></div>
+      <div class="earnings-footer">
+        <span>$0</span>
+        <span>Meta: $1.240.000</span>
+      </div>
+    </div>
+
+    <!-- Recent orders -->
+    <div class="section-header">
+      <span class="section-title">Pedidos recientes</span>
+      <span class="section-link">Ver todos</span>
+    </div>
+
+    <div class="order-card">
+      <div class="order-icon">🛍️</div>
+      <div class="order-info">
+        <div class="order-id">Pedido #4821093</div>
+        <div class="order-items">Hamburguesa clásica × 2, Papas medianas</div>
+      </div>
+      <div class="order-right">
+        <div class="order-amount">$48.900</div>
+        <span class="order-status status-delivered">Entregado</span>
+      </div>
+    </div>
+
+    <div class="order-card">
+      <div class="order-icon">🛍️</div>
+      <div class="order-info">
+        <div class="order-id">Pedido #4821087</div>
+        <div class="order-items">Combo familiar × 1, Bebida grande × 3</div>
+      </div>
+      <div class="order-right">
+        <div class="order-amount">$67.500</div>
+        <span class="order-status status-progress">En camino</span>
+      </div>
+    </div>
+
+    <div class="order-card">
+      <div class="order-icon">🛍️</div>
+      <div class="order-info">
+        <div class="order-id">Pedido #4821071</div>
+        <div class="order-items">Wrap pollo × 1</div>
+      </div>
+      <div class="order-right">
+        <div class="order-amount">$22.000</div>
+        <span class="order-status status-cancelled">Cancelado</span>
+      </div>
+    </div>
+
+    <!-- Visibility -->
+    <div class="section-header" style="margin-top:6px">
+      <span class="section-title">Tu visibilidad hoy</span>
+      <span class="section-link">Mejorar</span>
+    </div>
+    <div style="background:white;border-radius:14px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:13px;color:var(--text-secondary)">Posición en búsquedas</span>
+        <span style="font-size:13px;font-weight:700">#3 de 24</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:13px;color:var(--text-secondary)">Impresiones</span>
+        <span style="font-size:13px;font-weight:700">1.204</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:13px;color:var(--text-secondary)">Conversión</span>
+        <span style="font-size:13px;font-weight:700;color:var(--green)">3.9%</span>
+      </div>
+    </div>
+
+  </div><!-- .content -->
+</div><!-- #app -->
+
+<!-- FAB "Necesito ayuda" -->
+<button class="fab-help" id="btn-help">
+  <div class="fab-pulse"></div>
+  Necesito ayuda
+  <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+
+<!-- Bottom nav -->
+<div class="nav-bar">
+  <div class="nav-item active">
+    <svg fill="none" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Inicio
+  </div>
+  <div class="nav-item">
+    <svg fill="none" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Pedidos
+  </div>
+  <div class="nav-item">
+    <svg fill="none" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Finanzas
+  </div>
+  <div class="nav-item">
+    <svg fill="none" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Métricas
+  </div>
+  <div class="nav-item">
+    <svg fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    Perfil
+  </div>
+</div>
+
+<!-- Frontline overlay -->
+<div id="frontline-overlay">
+  <div id="overlay-backdrop" id="overlay-backdrop"></div>
+  <div id="frontline-panel">
+    <iframe id="frontline-iframe" src="" title="Rappi Frontline"></iframe>
+  </div>
+</div>
+
+<script>
+  const storeId = new URLSearchParams(window.location.search).get('store') || '84921';
+  const overlay  = document.getElementById('frontline-overlay');
+  const backdrop = document.getElementById('overlay-backdrop');
+  const iframe   = document.getElementById('frontline-iframe');
+  const panel    = document.getElementById('frontline-panel');
+
+  document.getElementById('btn-help').addEventListener('click', () => {
+    iframe.src = `/app?store=${storeId}`;
+    requestAnimationFrame(() => overlay.classList.add('open'));
+  });
+
+  backdrop.addEventListener('click', closeOverlay);
+
+  // Listen for messages from the iframe (e.g., "close" after booking)
+  window.addEventListener('message', (e) => {
+    if (e.data === 'frontline:close') closeOverlay();
+  });
+
+  function closeOverlay() {
+    overlay.classList.remove('open');
+    setTimeout(() => {
+      iframe.src = '';
+    }, 350);
+  }
+</script>
+</body>
+</html>

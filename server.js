@@ -124,6 +124,17 @@ app.get('/app', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Portal simulation
+app.get('/portal', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'portal.html'));
+});
+
+// Root → redirect to portal demo
+app.get('/', (req, res) => {
+  const store = req.query.store || '84921';
+  res.redirect(`/portal?store=${store}`);
+});
+
 // ─── GET /api/advisor?store= ─────────────────────────────────────────────────
 
 app.get('/api/advisor', (req, res) => {
@@ -344,5 +355,6 @@ app.post('/api/book', async (req, res) => {
 const PORT = parseInt(process.env.PORT || '3000');
 app.listen(PORT, () => {
   console.log(`\n🚀 Rappi Frontline corriendo en http://localhost:${PORT}`);
-  console.log(`   Prueba: http://localhost:${PORT}/app?store=84921\n`);
+  console.log(`   Portal: http://localhost:${PORT}/portal?store=84921`);
+  console.log(`   App:    http://localhost:${PORT}/app?store=84921\n`);
 });

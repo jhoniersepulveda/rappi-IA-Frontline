@@ -183,6 +183,28 @@
     }
     #bottom-sheet.open { transform: translateX(-50%) translateY(0); }
 
+    /* ── Modo iframe: pantalla completa en lugar de bottom sheet ── */
+    body.in-iframe #sheet-overlay { display: none !important; }
+    body.in-iframe #bottom-sheet {
+      position: fixed;
+      inset: 0;
+      left: 0;
+      transform: translateY(100%);
+      max-width: 100%;
+      max-height: 100%;
+      height: 100%;
+      border-radius: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow-y: auto;
+    }
+    body.in-iframe #bottom-sheet.open { transform: translateY(0); }
+    body.in-iframe .sheet-handle { display: none; }
+    body.in-iframe #bottom-sheet .sheet-tag { padding: 24px 20px 0; }
+    body.in-iframe #bottom-sheet > div:last-child { padding: 0 20px 40px; }
+
     .sheet-handle {
       width: 36px;
       height: 4px;
@@ -1149,7 +1171,9 @@
   // Step 1: "Ahora no"
   $('btn-dismiss').addEventListener('click', () => {
     closeSheet();
-    showError('Hasta luego', 'Puedes volver cuando necesites ayuda. Estamos aquí para ti.');
+    if (window !== window.parent) {
+      window.parent.postMessage('frontline:close', '*');
+    }
   });
 
   // Step 2: back button
@@ -1193,10 +1217,15 @@
   // Close sheet on overlay click
   $('sheet-overlay').addEventListener('click', () => {
     closeSheet();
-    showError('Hasta luego', 'Puedes volver cuando necesites ayuda. Estamos aquí para ti.');
+    if (window !== window.parent) {
+      window.parent.postMessage('frontline:close', '*');
+    }
   });
 
   // ── Boot ───────────────────────────────────────────────────────────────────
+  if (window !== window.parent) {
+    document.body.classList.add('in-iframe');
+  }
   init();
 </script>
 </body>
