@@ -240,14 +240,22 @@
     .nav-item.active { color: var(--primary); }
     .nav-item svg { width: 22px; height: 22px; }
 
-    /* ── FAB "Necesito ayuda" ── */
-    .fab-help {
+    /* ── FAB "Solicita a tu asesor" ── */
+    .fab-container {
       position: fixed;
       bottom: 82px;
       left: 50%;
       transform: translateX(-50%);
       width: calc(100% - 32px);
       max-width: calc(var(--max-w) - 32px);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .fab-help {
+      width: 100%;
       background: var(--primary);
       color: white;
       border: none;
@@ -262,34 +270,21 @@
       justify-content: center;
       gap: 10px;
       box-shadow: 0 4px 20px rgba(255, 68, 26, 0.45);
-      z-index: 20;
-      transition: transform 120ms ease, box-shadow 120ms ease;
+      transition: background 150ms ease, transform 120ms ease, box-shadow 120ms ease;
     }
     .fab-help:hover {
-      transform: translateX(-50%) translateY(-2px);
+      background: var(--primary-dark);
       box-shadow: 0 6px 24px rgba(255, 68, 26, 0.55);
     }
-    .fab-help:active {
-      transform: translateX(-50%) scale(0.97);
-    }
-    .fab-pulse {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: white;
-      position: relative;
-    }
-    .fab-pulse::after {
-      content: '';
-      position: absolute;
-      inset: -3px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.6);
-      animation: pulse 1.5s ease-out infinite;
-    }
-    @keyframes pulse {
-      0%   { transform: scale(0.8); opacity: 1; }
-      100% { transform: scale(1.8); opacity: 0; }
+    .fab-help:active { transform: scale(0.98); }
+    .fab-hint {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-align: center;
+      background: rgba(255,255,255,0.9);
+      padding: 3px 10px;
+      border-radius: 20px;
     }
 
     /* ── Frontline overlay (iframe panel) ── */
@@ -371,16 +366,16 @@
         <div class="header-icon">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <div class="header-icon">
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/><path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <div class="header-icon" id="btn-logout" title="Cerrar sesión" style="cursor:pointer">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
     </div>
     <div class="store-info">
-      <div class="store-avatar">🍔</div>
+      <div class="store-avatar" id="store-avatar">🍔</div>
       <div>
-        <div class="store-name">Tienda 84921</div>
-        <div class="store-meta">ID: 84921 · Bogotá, Colombia</div>
+        <div class="store-name" id="store-name">Cargando…</div>
+        <div class="store-meta" id="store-meta">…</div>
         <div class="store-status"><span class="status-dot"></span>Abierto ahora</div>
       </div>
     </div>
@@ -485,12 +480,14 @@
   </div><!-- .content -->
 </div><!-- #app -->
 
-<!-- FAB "Necesito ayuda" -->
-<button class="fab-help" id="btn-help">
-  <div class="fab-pulse"></div>
-  Necesito ayuda
-  <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</button>
+<!-- FAB "Solicita a tu asesor" -->
+<div class="fab-container">
+  <button class="fab-help" id="btn-help">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Solicita a tu asesor
+  </button>
+  <p class="fab-hint">Sesión de 15 min · Elige tu horario</p>
+</div>
 
 <!-- Bottom nav -->
 <div class="nav-bar">
@@ -525,7 +522,27 @@
 </div>
 
 <script>
-  const storeId = new URLSearchParams(window.location.search).get('store') || '84921';
+  // ── Auth guard ────────────────────────────────────────────────────────────
+  const sessionRaw = sessionStorage.getItem('rappi_store');
+  if (!sessionRaw) {
+    window.location.href = '/login';
+  }
+  let storeSession = {};
+  try { storeSession = JSON.parse(sessionRaw); } catch(_) { window.location.href = '/login'; }
+
+  const storeId = storeSession.storeId || new URLSearchParams(window.location.search).get('store') || '84921';
+
+  // Populate store info
+  document.getElementById('store-avatar').textContent = storeSession.emoji || '🍔';
+  document.getElementById('store-name').textContent   = storeSession.name  || `Tienda ${storeId}`;
+  document.getElementById('store-meta').textContent   = `ID: ${storeId} · ${storeSession.city || 'Colombia'}`;
+
+  // Logout
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    sessionStorage.removeItem('rappi_store');
+    window.location.href = '/login';
+  });
+
   const overlay  = document.getElementById('frontline-overlay');
   const backdrop = document.getElementById('overlay-backdrop');
   const iframe   = document.getElementById('frontline-iframe');

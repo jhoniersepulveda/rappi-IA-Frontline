@@ -636,7 +636,7 @@
   <div id="sheet-overlay"></div>
   <div id="bottom-sheet">
     <div class="sheet-handle"></div>
-    <p class="sheet-tag">Tu asesor asignado</p>
+    <p class="sheet-tag">Solicitud de sesión · 15 min</p>
 
     <div class="advisor-card" id="sheet-advisor-card">
       <!-- Populated by JS -->
@@ -644,8 +644,11 @@
 
     <div class="advisor-bio" id="sheet-bio"></div>
 
-    <div style="margin-top:20px">
-      <button class="btn btn-primary" id="btn-schedule">Agendar sesión con…</button>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0fdf4;border-radius:10px;border-left:3px solid #10b981;font-size:13px;color:#166534;line-height:1.5">
+      📅 Tu asesor recibirá tu solicitud y se preparará para atenderte. Elige el horario que mejor te convenga.
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn btn-primary" id="btn-schedule">Solicitar sesión con…</button>
       <button class="btn btn-secondary" id="btn-dismiss">Ahora no, gracias</button>
     </div>
   </div>
@@ -897,7 +900,7 @@
       </div>
     `;
     $('sheet-bio').textContent = advisor.bio;
-    $('btn-schedule').textContent = `Agendar sesión con ${advisor.name.split(' ')[0]}`;
+    $('btn-schedule').textContent = `Solicitar sesión con ${advisor.name.split(' ')[0]}`;
   }
 
   // ── Render advisor mini (step 2 top) ───────────────────────────────────────

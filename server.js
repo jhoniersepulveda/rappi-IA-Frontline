@@ -8,6 +8,7 @@ const nodemailer = require('nodemailer');
 // ─── Load static data ────────────────────────────────────────────────────────
 
 const advisorsData = JSON.parse(fs.readFileSync('./advisors.json', 'utf8'));
+const storesData   = JSON.parse(fs.readFileSync('./stores.json', 'utf8'));
 
 if (!fs.existsSync('./sessions.json')) {
   fs.writeFileSync('./sessions.json', '{}');
@@ -117,7 +118,27 @@ const PROBLEM_TYPES = [
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Login page
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// Login API
+app.post('/api/login', (req, res) => {
+  const { storeId, password } = req.body;
+  if (!storeId || !password) {
+    return res.status(400).json({ error: 'Store ID y contraseña son requeridos' });
+  }
+  const store = storesData.stores.find(
+    s => s.storeId === storeId.trim() && s.password === password
+  );
+  if (!store) {
+    return res.status(401).json({ error: 'Store ID o contraseña incorrectos' });
+  }
+  const { password: _, ...safeStore } = store;
+  return res.json({ store: safeStore });
+});
 
 // Redirect /app to index.html (keeps ?store= param)
 app.get('/app', (req, res) => {
@@ -129,11 +150,13 @@ app.get('/portal', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'portal.html'));
 });
 
-// Root → redirect to portal demo
+// Root → login
 app.get('/', (req, res) => {
-  const store = req.query.store || '84921';
-  res.redirect(`/portal?store=${store}`);
+  res.redirect('/login');
 });
+
+// Static files (after explicit routes so / is not intercepted)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── GET /api/advisor?store= ─────────────────────────────────────────────────
 

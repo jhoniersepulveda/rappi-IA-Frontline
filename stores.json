@@ -1,0 +1,20 @@
+{
+  "stores": [
+    {
+      "storeId": "84921",
+      "name": "El Rincón Sabroso",
+      "password": "rappi123",
+      "category": "Comida rápida",
+      "city": "Bogotá",
+      "emoji": "🍔"
+    },
+    {
+      "storeId": "12345",
+      "name": "Burger Mania",
+      "password": "aliados456",
+      "category": "Hamburguesas",
+      "city": "Medellín",
+      "emoji": "🍟"
+    }
+  ]
+}
